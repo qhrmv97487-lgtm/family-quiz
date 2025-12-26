@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Quiz</title>
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  background: linear-gradient(135deg, #e6ecff, #f9fbff);
+  margin: 0;
+  padding: 20px;
+}
+
+.quiz-box {
+  max-width: 520px;
+  margin: auto;
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.progress {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.question {
+  font-size: 1.25em;
+  margin-bottom: 20px;
+}
+
+.answer {
+  width: 100%;
+  padding: 16px;
+  margin: 10px 0;
+  font-size: 1em;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #4a6cf7;
+  color: white;
+}
+
+.answer:hover {
+  background: #3b55d9;
+}
+
+.correct {
+  background: #28a745 !important;
+}
+
+.wrong {
+  background: #dc3545 !important;
+}
+
+.result {
+  text-align: center;
+  font-size: 1.3em;
+}
+
+.play-again {
+  margin-top: 20px;
+  padding: 15px;
+  font-size: 1em;
+  background: #4a6cf7;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="quiz-box">
+  <h1>Family Quiz 🎉</h1>
+  <div id="quiz"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "What colour is the sky on a clear day?",
+    a: ["Green", "Blue", "Red", "Yellow"],
+    c: 1
+  },
+  {
+    q: "How many legs does a spider have?",
+    a: ["6", "8", "10", "12"],
+    c: 1
+  },
+  {
+    q: "Which planet is known as the Red Planet?",
+    a: ["Venus", "Mars", "Jupiter", "Saturn"],
+    c: 1
+  },
+  {
+    q: "What animal is known as man's best friend?",
+    a: ["Cat", "Horse", "Dog", "Rabbit"],
+    c: 2
+  },
+  {
+    q: "How many days are there in a week?",
+    a: ["5", "6", "7", "8"],
+    c: 2
+  }
+];
+
+let current = 0;
+let score = 0;
+
+const quiz = document.getElementById("quiz");
+
+function loadQuestion() {
+  const q = questions[current];
+  quiz.innerHTML = `
+    <div class="progress">Question ${current + 1} of ${questions.length}</div>
+    <div class="question">${q.q}</div>
+    ${q.a.map((text, i) =>
+      `<button class="answer" onclick="answer(${i})">${text}</button>`
+    ).join("")}
+  `;
+}
+
+function answer(index) {
+  const buttons = document.querySelectorAll(".answer");
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === questions[current].c) btn.classList.add("correct");
+    if (i === index && i !== questions[current].c) btn.classList.add("wrong");
+  });
+
+  if (index === questions[current].c) score++;
+
+  setTimeout(() => {
+    current++;
+    if (current < questions.length) {
+      loadQuestion();
+    } else {
+      showResult();
+    }
+  }, 1200);
+}
+
+function showResult() {
+  let message = "Nice try!";
+  if (score === questions.length) message = "Perfect score! 🏆";
+  else if (score >= questions.length - 1) message = "Brilliant job! ⭐";
+
+  quiz.innerHTML = `
+    <div class="result">
+      ${message}<br><br>
+      You scored <strong>${score}</strong> out of <strong>${questions.length}</strong>
+      <br>
+      <button class="play-again" onclick="location.reload()">Play Again</button>
+    </div>
+  `;
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
