@@ -3,265 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Quiz</title>
-
+<title>Family Team Quiz – Fastest Buzzer Round</title>
 <style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  background: linear-gradient(135deg, #eef2ff, #ffffff);
-  margin: 0;
-  padding: 20px;
-}
-
-.quiz-box {
-  max-width: 600px;
-  margin: auto;
-  background: white;
-  padding: 25px;
-  border-radius: 16px;
-  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-}
-
-h1, h2 {
-  text-align: center;
-}
-
-input, select {
-  width: 100%;
-  padding: 14px;
-  margin: 10px 0;
-  font-size: 1em;
-}
-
-button {
-  width: 100%;
-  padding: 16px;
-  margin: 8px 0;
-  font-size: 1em;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #4a6cf7;
-  color: white;
-}
-
-button:hover { background: #3b55d9; }
-
-.answer.correct { background: #28a745; }
-.answer.wrong { background: #dc3545; }
-
-.progress {
-  text-align: center;
-  font-size: 0.9em;
-  margin-bottom: 10px;
-  color: #555;
-}
-
-img {
-  max-width: 100%;
-  border-radius: 10px;
-  margin: 15px 0;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-th, td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
+body {font-family:-apple-system, BlinkMacSystemFont, Arial, sans-serif; background:linear-gradient(135deg,#eef2ff,#ffffff); margin:0;padding:20px;}
+.quiz-box{max-width:600px;margin:auto;background:white;padding:25px;border-radius:16px;box-shadow:0 15px 30px rgba(0,0,0,0.1);}
+h1,h2{text-align:center;}
+input,select{width:100%;padding:14px;margin:10px 0;font-size:1em;}
+button{width:100%;padding:16px;margin:8px 0;font-size:1em;border:none;border-radius:10px;cursor:pointer;background:#4a6cf7;color:white;}
+button:hover{background:#3b55d9;}
+.answer.correct{background:#28a745;}
+.answer.wrong{background:#dc3545;}
+.progress{text-align:center;font-size:0.9em;margin-bottom:10px;color:#555;}
+img{max-width:100%;border-radius:10px;margin:15px 0;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:center;}
 </style>
 </head>
-
 <body>
-
 <div class="quiz-box">
-  <h1>Family Quiz Night 🎉</h1>
-  <div id="quiz"></div>
+<h1>Family Team Quiz 🎉</h1>
+<div id="quiz"></div>
 </div>
-
 <script>
-let teams = JSON.parse(localStorage.getItem("teams") || "[]");
-let teamName = "";
-let teamType = "kids";
-let score = 0;
-let round = 0;
-let question = 0;
-
+let teams=[], currentTeam=0, round=0, question=0, buzzerActive=false, buzzerAnswered=false;
 const quiz = document.getElementById("quiz");
 
 const rounds = [
-{
-  name: "General Knowledge",
-  questions: [
-    { q: "How many days are in a week?", a: ["5","6","7","8"], c: 2 },
-    { q: "What colour are bananas?", a: ["Blue","Yellow","Red","White"], c: 1 },
-    { q: "How many wheels does a bicycle have?", a: ["1","2","3","4"], c: 1 },
-    { q: "Which animal says moo?", a: ["Dog","Cow","Cat","Sheep"], c: 1 },
-    { q: "How many hours are in a day?", a: ["12","18","24","36"], c: 2 },
-    { q: "What do bees make?", a: ["Milk","Honey","Water","Bread"], c: 1 }
-  ]
-},
-{
-  name: "Science & Nature",
-  questions: [
-    { q: "Which planet is closest to the sun?", a: ["Earth","Mars","Mercury","Venus"], c: 2 },
-    { q: "How many legs does an insect have?", a: ["4","6","8","10"], c: 1 },
-    { q: "What gas do we breathe?", a: ["Oxygen","Carbon","Steam","Smoke"], c: 0 },
-    { q: "What covers most of Earth?", a: ["Land","Water","Sand","Ice"], c: 1 },
-    { q: "Which animal lives in water?", a: ["Dog","Horse","Whale","Lion"], c: 2 },
-    { q: "Plants need what to grow?", a: ["Music","Sunlight","Plastic","Chocolate"], c: 1 }
-  ]
-},
-{
-  name: "History",
-  questions: [
-    { q: "Who was first on the moon?", a: ["Buzz Aldrin","Neil Armstrong","Tim Peake","Yuri Gagarin"], c: 1 },
-    { q: "Where were pyramids built?", a: ["Italy","Egypt","Mexico","China"], c: 1 },
-    { q: "Who were Vikings?", a: ["Artists","Explorers","Kings","Farmers"], c: 1 },
-    { q: "What did knights wear?", a: ["Suits","Armour","Coats","Pyjamas"], c: 1 },
-    { q: "Who was Queen Victoria?", a: ["Queen","Scientist","Explorer","Writer"], c: 0 },
-    { q: "Castles were used for what?", a: ["Decorating","Protection","Farming","Cooking"], c: 1 }
-  ]
-},
-{
-  name: "Geography",
-  questions: [
-    { q: "Which is the biggest ocean?", a: ["Atlantic","Indian","Pacific","Arctic"], c: 2 },
-    { q: "London is in which country?", a: ["France","USA","England","Italy"], c: 2 },
-    { q: "Which continent is the UK in?", a: ["Asia","Africa","Europe","America"], c: 2 },
-    { q: "Where is the North Pole?", a: ["Desert","Ocean","Arctic","Antarctica"], c: 2 },
-    { q: "Which is a country?", a: ["Paris","Spain","Nile","Amazon"], c: 1 },
-    { q: "Which is hottest?", a: ["Sun","Moon","Earth","Mars"], c: 0 }
-  ]
-},
-{
-  name: "Picture Round – Flags",
-  questions: [
-    { q: "Which flag is this?", img: "https://flagcdn.com/w320/gb.png", a: ["France","USA","UK","Australia"], c: 2 },
-    { q: "Which flag is this?", img: "https://flagcdn.com/w320/fr.png", a: ["Italy","France","Ireland","Belgium"], c: 1 },
-    { q: "Which flag is this?", img: "https://flagcdn.com/w320/us.png", a: ["USA","Canada","Mexico","Brazil"], c: 0 },
-    { q: "Which flag is this?", img: "https://flagcdn.com/w320/de.png", a: ["Austria","Germany","Belgium","Spain"], c: 1 },
-    { q: "Which flag is this?", img: "https://flagcdn.com/w320/it.png", a: ["Italy","France","Ireland","Mexico"], c: 0 },
-    { q: "Which flag is this?", img: "https://flagcdn.com/w320/es.png", a: ["Portugal","Spain","Italy","Romania"], c: 1 }
-  ]
-},
-{
-  name: "Football ⚽",
-  questions: [
-    { q: "How many players in a football team on the pitch?", a: ["9","10","11","12"], c: 2 },
-    { q: "What part of the body can't touch the ball?", a: ["Head","Chest","Hand","Foot"], c: 2 },
-    { q: "What colour card means stop playing?", a: ["Yellow","Blue","Red","Green"], c: 2 },
-    { q: "What is scored into a goal?", a: ["Bat","Ball","Puck","Disc"], c: 1 },
-    { q: "Who guards the goal?", a: ["Defender","Striker","Goalkeeper","Ref"], c: 2 },
-    { q: "How long is a normal match?", a: ["60 mins","70 mins","90 mins","100 mins"], c: 2 }
-  ]
-},
-{
-  name: "Fun & Mixed",
-  questions: [
-    { q: "Which superhero is from Gotham?", a: ["Batman","Spiderman","Hulk","Superman"], c: 0 },
-    { q: "What comes after Friday?", a: ["Sunday","Saturday","Monday","Thursday"], c: 1 },
-    { q: "Which animal has a trunk?", a: ["Horse","Elephant","Bear","Giraffe"], c: 1 },
-    { q: "Which is a fruit?", a: ["Onion","Carrot","Apple","Potato"], c: 2 },
-    { q: "What tells the time?", a: ["Map","Clock","Book","TV"], c: 1 },
-    { q: "Which sport uses a bat?", a: ["Football","Cricket","Tennis","Golf"], c: 1 }
-  ]
-}
+{ name:"General Knowledge", questions:[{q:"How many days are in a week?",a:["5","6","7","8"],c:2},{q:"What colour are bananas?",a:["Blue","Yellow","Red","White"],c:1},{q:"How many wheels does a bicycle have?",a:["1","2","3","4"],c:1},{q:"Which animal says moo?",a:["Dog","Cow","Cat","Sheep"],c:1},{q:"How many hours in a day?",a:["12","18","24","36"],c:2},{q:"What do bees make?",a:["Milk","Honey","Water","Bread"],c:1}]},
+{ name:"Science & Nature", questions:[{q:"Which planet is closest to the sun?",a:["Earth","Mars","Mercury","Venus"],c:2},{q:"How many legs does an insect have?",a:["4","6","8","10"],c:1},{q:"What gas do we breathe?",a:["Oxygen","Carbon","Steam","Smoke"],c:0},{q:"What covers most of Earth?",a:["Land","Water","Sand","Ice"],c:1},{q:"Which animal lives in water?",a:["Dog","Horse","Whale","Lion"],c:2},{q:"Plants need what to grow?",a:["Music","Sunlight","Plastic","Chocolate"],c:1}]},
+{ name:"History", questions:[{q:"Who was first on the moon?",a:["Buzz Aldrin","Neil Armstrong","Tim Peake","Yuri Gagarin"],c:1},{q:"Where were pyramids built?",a:["Italy","Egypt","Mexico","China"],c:1},{q:"Who were Vikings?",a:["Artists","Explorers","Kings","Farmers"],c:1},{q:"What did knights wear?",a:["Suits","Armour","Coats","Pyjamas"],c:1},{q:"Who was Queen Victoria?",a:["Queen","Scientist","Explorer","Writer"],c:0},{q:"Castles were used for what?",a:["Decorating","Protection","Farming","Cooking"],c:1}]},
+{ name:"Geography", questions:[{q:"Which is the biggest ocean?",a:["Atlantic","Indian","Pacific","Arctic"],c:2},{q:"London is in which country?",a:["France","USA","England","Italy"],c:2},{q:"Which continent is the UK in?",a:["Asia","Africa","Europe","America"],c:2},{q:"Where is the North Pole?",a:["Desert","Ocean","Arctic","Antarctica"],c:2},{q:"Which is a country?",a:["Paris","Spain","Nile","Amazon"],c:1},{q:"Which is hottest?",a:["Sun","Moon","Earth","Mars"],c:0}]},
+{ name:"Picture Round – Flags", questions:[{q:"Which flag is this?",img:"https://flagcdn.com/w320/gb.png",a:["France","USA","UK","Australia"],c:2},{q:"Which flag is this?",img:"https://flagcdn.com/w320/fr.png",a:["Italy","France","Ireland","Belgium"],c:1},{q:"Which flag is this?",img:"https://flagcdn.com/w320/us.png",a:["USA","Canada","Mexico","Brazil"],c:0},{q:"Which flag is this?",img:"https://flagcdn.com/w320/de.png",a:["Austria","Germany","Belgium","Spain"],c:1},{q:"Which flag is this?",img:"https://flagcdn.com/w320/it.png",a:["Italy","France","Ireland","Mexico"],c:0},{q:"Which flag is this?",img:"https://flagcdn.com/w320/es.png",a:["Portugal","Spain","Italy","Romania"],c:1}]},
+{ name:"Football ⚽ (Buzzer Round)", questions:[{q:"How many players in a football team on the pitch?",a:["9","10","11","12"],c:2},{q:"What part of the body can't touch the ball?",a:["Head","Chest","Hand","Foot"],c:2},{q:"What colour card means stop playing?",a:["Yellow","Blue","Red","Green"],c:2},{q:"What is scored into a goal?",a:["Bat","Ball","Puck","Disc"],c:1},{q:"Who guards the goal?",a:["Defender","Striker","Goalkeeper","Ref"],c:2},{q:"How long is a normal match?",a:["60 mins","70 mins","90 mins","100 mins"],c:2}]},
+{ name:"Fun & Mixed", questions:[{q:"Which superhero is from Gotham?",a:["Batman","Spiderman","Hulk","Superman"],c:0},{q:"What comes after Friday?",a:["Sunday","Saturday","Monday","Thursday"],c:1},{q:"Which animal has a trunk?",a:["Horse","Elephant","Bear","Giraffe"],c:1},{q:"Which is a fruit?",a:["Onion","Carrot","Apple","Potato"],c:2},{q:"What tells the time?",a:["Map","Clock","Book","TV"],c:1},{q:"Which sport uses a bat?",a:["Football","Cricket","Tennis","Golf"],c:1}]}
 ];
 
-function startScreen() {
-  quiz.innerHTML = `
-    <h2>Enter Team Details</h2>
-    <input placeholder="Team Name" id="teamName">
-    <select id="teamType">
-      <option value="kids">Kids Team</option>
-      <option value="adults">Adults Team</option>
-    </select>
-    <button onclick="startQuiz()">Start Quiz</button>
-    <button onclick="showLeaderboard()">View Leaderboard</button>
-  `;
+function startScreen(){
+quiz.innerHTML=`<h2>Enter Teams</h2><div id="teamInputs"></div>
+<button onclick="addTeamInput()">Add Team</button>
+<button onclick="startTeams()">Start Quiz</button>
+<button onclick="showLeaderboard()">View Leaderboard</button>`;
+addTeamInput();
 }
 
-function startQuiz() {
-  teamName = document.getElementById("teamName").value || "Unnamed Team";
-  teamType = document.getElementById("teamType").value;
-  score = 0;
-  round = 0;
-  question = 0;
-  loadQuestion();
+function addTeamInput(){
+const container=document.getElementById("teamInputs");
+const idx=container.children.length;
+const div=document.createElement("div");
+div.innerHTML=`<input placeholder="Team Name" id="teamName${idx}"> <select id="teamType${idx}"><option value="kids">Kids</option><option value="adults">Adults</option></select>`;
+container.appendChild(div);
 }
 
-function loadQuestion() {
-  const r = rounds[round];
-  const q = r.questions[question];
-
-  quiz.innerHTML = `
-    <div class="progress">
-      ${teamName} (${teamType})<br>
-      Round ${round+1}/${rounds.length} – ${r.name}<br>
-      Question ${question+1}/6
-    </div>
-    <div class="question">${q.q}</div>
-    ${q.img ? `<img src="${q.img}">` : ""}
-    ${q.a.map((x,i)=>`<button class="answer" onclick="answer(${i})">${x}</button>`).join("")}
-  `;
+function startTeams(){
+teams=[];
+const inputs=document.getElementById("teamInputs").children;
+for(let i=0;i<inputs.length;i++){
+let name=document.getElementById(`teamName${i}`).value||`Team${i+1}`;
+let type=document.getElementById(`teamType${i}`).value;
+teams.push({name,type,score:0});
+}
+currentTeam=0; round=0; question=0;
+loadQuestion();
 }
 
-function answer(i) {
-  const r = rounds[round];
-  const q = r.questions[question];
-  const buttons = document.querySelectorAll(".answer");
+function loadQuestion(){
+const r=rounds[round];
+const q=r.questions[question];
 
-  buttons.forEach((b,idx)=>{
-    b.disabled=true;
-    if(idx===q.c) b.classList.add("correct");
-    if(idx===i && i!==q.c) b.classList.add("wrong");
-  });
-
-  if(i===q.c) score += teamType==="adults" ? 2 : 1;
-
-  setTimeout(()=>{
-    question++;
-    if(question<6) loadQuestion();
-    else {
-      round++;
-      question=0;
-      if(round<rounds.length) loadQuestion();
-      else endQuiz();
-    }
-  },1200);
+if(r.name.includes("Buzzer")){ // Buzzer Round
+buzzerActive=true;
+buzzerAnswered=false;
+quiz.innerHTML=`<div class="progress">Buzzer Round – ${r.name}<br>Question ${question+1}/6</div>
+<div class="question">${q.q}</div>${q.img?`<img src="${q.img}">`:''}
+${q.a.map((x,i)=>`<button class="answer" onclick="buzzerAnswer(${i},this)">${x}</button>`).join('')}
+<p style="text-align:center">First correct tap wins!</p>`;
+} else { // Normal Team vs Team
+buzzerActive=false;
+const t=teams[currentTeam];
+quiz.innerHTML=`<div class="progress">Team: ${t.name} (${t.type})<br>Round ${round+1}/${rounds.length} – ${r.name}<br>Question ${question+1}/6</div>
+<div class="question">${q.q}</div>${q.img?`<img src="${q.img}">`:''}
+${q.a.map((x,i)=>`<button class="answer" onclick="answer(${i})">${x}</button>`).join('')}`;
+}
 }
 
-function endQuiz() {
-  teams.push({name:teamName,type:teamType,score});
-  localStorage.setItem("teams",JSON.stringify(teams));
-  showLeaderboard();
+function answer(i){
+const r=rounds[round];
+const q=r.questions[question];
+const t=teams[currentTeam];
+const buttons=document.querySelectorAll(".answer");
+buttons.forEach((b,idx)=>{
+b.disabled=true;
+if(idx===q.c)b.classList.add("correct");
+if(idx===i && i!==q.c)b.classList.add("wrong");
+});
+if(i===q.c) t.score += t.type=="adults"?2:1;
+setTimeout(()=>{
+question++;
+if(question<6) loadQuestion();
+else{
+round++;
+question=0;
+if(round<rounds.length) loadQuestion();
+}
+},1200);
 }
 
-function showLeaderboard() {
-  const rows = teams
-    .sort((a,b)=>b.score-a.score)
-    .map(t=>`<tr><td>${t.name}</td><td>${t.type}</td><td>${t.score}</td></tr>`)
-    .join("");
+function buzzerAnswer(i,btn){
+if(buzzerAnswered) return;
+buzzerAnswered=true;
+const r=rounds[round];
+const q=r.questions[question];
+const correctTeam=teams[Math.floor(Math.random()*teams.length)]; // first tap team
+if(i===q.c) correctTeam.score += correctTeam.type=="adults"?2:1;
+const buttons=document.querySelectorAll(".answer");
+buttons.forEach((b,idx)=>{
+b.disabled=true;
+if(idx===q.c)b.classList.add("correct");
+if(idx===i && i!==q.c)b.classList.add("wrong");
+});
+setTimeout(()=>{
+question++;
+if(question<6) loadQuestion();
+else{
+round++;
+question=0;
+currentTeam=0; // resume normal play
+loadQuestion();
+}
+},1200);
+}
 
-  quiz.innerHTML = `
-    <h2>🏆 Leaderboard</h2>
-    <table>
-      <tr><th>Team</th><th>Type</th><th>Score</th></tr>
-      ${rows}
-    </table>
-    <button onclick="startScreen()">New Team</button>
-    <button onclick="localStorage.clear(); location.reload()">Reset Scores</button>
-  `;
+function showLeaderboard(){
+const rows=teams.sort((a,b)=>b.score-b.score).map(t=>`<tr><td>${t.name}</td><td>${t.type}</td><td>${t.score}</td></tr>`).join('');
+quiz.innerHTML=`<h2>🏆 Leaderboard</h2><table><tr><th>Team</th><th>Type</th><th>Score</th></tr>${rows}</table>
+<button onclick="startScreen()">New Quiz</button>`;
 }
 
 startScreen();
 </script>
-
 </body>
 </html>
